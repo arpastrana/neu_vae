@@ -146,9 +146,8 @@ def run(config):
         # wandb - merge into one logging operation
         wandb.log({"Train Loss - Total": train_loss,
                    "Train Loss - Reconstruction": train_recon_loss,
-                   "Train Loss - KL Divergence": train_kld_loss})
-
-        wandb.log({"Test Loss - Total": test_loss,
+                   "Train Loss - KL Divergence": train_kld_loss,
+                   "Test Loss - Total": test_loss,
                    "Test Loss - Reconstruction": test_recon_loss,
                    "Test Loss - KL Divergence": test_kld_loss})
 
