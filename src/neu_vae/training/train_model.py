@@ -48,6 +48,4 @@ def train(kwargs):
         train_recon_loss += recon_loss.item()
         train_kld_loss += kld_loss.item()
 
-        # wandb logging
-
-    return train_loss
+    return train_loss, train_recon_loss, train_kld_loss

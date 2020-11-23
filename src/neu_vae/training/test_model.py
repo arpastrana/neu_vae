@@ -46,6 +46,4 @@ def test(kwargs):
             test_recon_loss += recon_loss.item()
             test_kld_loss += kld_loss.item()
 
-            # wandb logging
-
-    return test_loss
+    return test_loss, test_recon_loss, test_kld_loss

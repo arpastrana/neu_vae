@@ -1,6 +1,9 @@
 """
 Let the good times roll.
 """
+import os
+import wandb
+
 from datetime import datetime
 from time import time
 
@@ -13,6 +16,7 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 
 from torch import device
+from torch import save
 from torch import cuda
 from torch import manual_seed
 
@@ -23,21 +27,28 @@ from neu_vae.models import LinearEncoder
 from neu_vae.models import LinearDecoder
 from neu_vae.models import VanillaVAE
 
-from train_model import train
-from test_model import test
+from neu_vae.training import train
+from neu_vae.training import test
 
 
 def run(config):
     """
     Run training and testing.
     """
+    # wandb
+    if config["wandb"]:
+        wandb.init(config=config, project=config["project"])
+
     # Set random seeds
     manual_seed(config["seed"])
     cuda.manual_seed(config["seed"])
 
     # override device
-    dev = device("cuda" if cuda.is_available() else "cpu")
+    use_cuda = cuda.is_available()
+    dev = device("cuda" if use_cuda else "cpu")
     config["device"] = dev
+
+    d_kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
 
     # load datasets
     transformations = transforms.Compose([transforms.ToTensor()])
@@ -45,12 +56,14 @@ def run(config):
     train_dataset = datasets.MNIST(config["data_path"],
                                    train=True,
                                    download=True,
-                                   transform=transformations)
+                                   transform=transformations,
+                                   **d_kwargs)
 
     test_dataset = datasets.MNIST(config["data_path"],
                                   train=False,
                                   download=True,
-                                  transform=transformations)
+                                  transform=transformations,
+                                  **d_kwargs)
 
     # define batchers
     train_batcher = DataLoader(train_dataset,
@@ -96,9 +109,14 @@ def run(config):
     # print model summary
     summary(model, (1, config["input_dim"]))
 
+    # wandb
+    if config["wandb"]:
+        wandb.watch(model, log="all")
+
     # create the optimizer
     optimizer = getattr(optim, config["optimizer"])
-    config["optimizer"] = optimizer(model.parameters(), lr=config["lr"])
+    optimizer = optimizer(model.parameters(), lr=config["lr"])
+    config["optimizer"] = optimizer
 
     # train and test
     print("Training...")
@@ -111,13 +129,38 @@ def run(config):
 
     for e in range(config["epochs"]):
 
-        train_loss = train(config)
-        test_loss = test(config)
+        train_losses = train(config)
+        test_losses = test(config)
 
-        train_loss /= len(config["train_batcher"].dataset)
-        test_loss /= len(config["test_batcher"].dataset)
+        # average
+        train_losses = [loss / len(train_batcher.dataset) for loss in train_losses]
+        test_losses = [loss / len(test_batcher.dataset) for loss in test_losses]
 
+        # unpack
+        train_loss, train_recon_loss, train_kld_loss = train_losses
+        test_loss, test_recon_loss, test_kld_loss = test_losses
+
+        # print stuff
         print(f'Epoch {e}, Train Loss: {train_loss:.2f}, Test Loss: {test_loss:.2f}')
+
+        # wandb - merge into one logging operation
+        wandb.log({"Train Loss - Total": train_loss,
+                   "Train Loss - Reconstruction": train_recon_loss,
+                   "Train Loss - KL Divergence": train_kld_loss})
+
+        wandb.log({"Test Loss - Total": test_loss,
+                   "Test Loss - Reconstruction": test_recon_loss,
+                   "Test Loss - KL Divergence": test_kld_loss})
+
+    # save model with torch to wandb run dir (uploads after training is complete)
+    # TODO: Save intermediary checkpoints instead
+    save({"epoch": e,
+          "model_state_dict": model.state_dict(),
+          "optimizer_state_dict": optimizer.state_dict(),
+          "z_dim": config["z_dim"],
+          "train_loss": train_loss,
+          "test_loss": test_loss},
+         os.path.join(wandb.run.dir, "model_state.pt"))
 
     # current time
     print("----------------------------------------------------------------")
