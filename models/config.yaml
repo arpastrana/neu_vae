@@ -1,0 +1,25 @@
+# datasets
+data_path: "../data/external"
+seed: 1
+
+# optimizer
+optimizer: "Adam"  # Adagrad
+lr: 0.001
+
+# reconstruction loss
+rec_loss: "binary_cross_entropy"
+
+# learning rate
+batch_size: 256  # 100
+epochs: 100
+
+# VAE architecture
+input_dim: 784  # for the MNIST dataset
+z_dim: 20  # 3
+encoder_hidden_dim: 400  # 400
+decoder_hidden_dim: 400
+
+# activation functions
+encoder_act_func: "relu"
+decoder_act_func: "relu"
+decoder_pred_func: "sigmoid"
