@@ -21,6 +21,8 @@ def show_latent_grid(model, device, bound=1.5, num_samples=20):
     assert model.z_dim == 2, "Only 2d latent space currently supported"
 
     with no_grad():
+        # no training mode
+        model.eval()
 
         # create a sample grid in 2d latent space
         z_x = np.linspace(-bound, bound, num_samples)
@@ -29,41 +31,30 @@ def show_latent_grid(model, device, bound=1.5, num_samples=20):
         z = FloatTensor(len(z_y), len(z_x), 2)
 
         for i, lx in enumerate(z_x):
-
             for j, ly in enumerate(z_y):
-
                 z[j, i, 0] = lx
                 z[j, i, 1] = ly
 
-        z = randn((num_samples, model.z_dim))
-
         z = z.view(-1, 2)  # flatten grid into a batch
-
-        # reconstruct images from the latent vectors
         z = z.to(device)
 
+        # reconstruct images from the latent vectors
         x_hat = model.decode(z).cpu()
+        x_hat = x_hat.view(-1, 1, 28, 28)
 
-        print(z.shape)
+        plt.subplots(figsize=(8, 8))
+        show_image(make_grid(x_hat.data, nrow=num_samples, padding=0))
 
-        plt.subplots(figsize=(10, 10))
-
-        print(x_hat.shape)
-
-        x_hat = x_hat.view(-1, 28, 28)
-        print(x_hat.shape)
-
-        show_image(make_grid(x_hat.data, nrow=num_samples))
-
+        plt.axis('off')
+        plt.tight_layout()
         plt.show()
 
 
 def show_image(img):
     """
     """
-    img = to_img(img)
+    # img = to_img(img)
     npimg = img.numpy()
-
     plt.imshow(np.transpose(npimg, (1, 2, 0)))
 
 
