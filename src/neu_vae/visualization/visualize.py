@@ -126,7 +126,7 @@ def image_grid(images, nrow=2, padding=0, imgsize=(1, 28, 28), figsize=(8, 8)):
     Make a grid of images using torchvision.
     """
     # send images to cpu
-    images = images.cpu()
+    images = images.to("cpu")
 
     # for now, hard coded for the mnist dataset (1, 28, 28)
     images = images.view(-1, *imgsize)  # batch size, channels, height, width
@@ -184,7 +184,7 @@ if __name__ == "__main__":
     path = "/Users/arpj/Desktop/vae_interp/"
 
     model = reload_model(config)
-    show_latent_grid(model, "cpu", bound=1.5, num_samples=20)
-    # save_circular_walk(model, path, "cpu", (-1.5, -1.5), (1.5, 1.5), num_samples=10)
+    # show_latent_grid(model, "cpu", bound=1.5, num_samples=20)
+    save_circular_walk(model, path, "cpu", (-1.5, -1.5), (1.5, 1.5), num_samples=10)
 
     print("Done!")

@@ -11,7 +11,7 @@ rec_loss: "binary_cross_entropy"
 
 # learning rate
 batch_size: 100  # 100
-epochs: 100
+epochs: 5  # 100
 
 # VAE architecture
 input_dim: 784  # for the MNIST dataset
@@ -27,6 +27,9 @@ decoder_pred_func: "sigmoid"
 # weights and biases logging
 project: "vae_kingma"
 wandb: True
+group: "delete_me"
+test_num_img: 10
+save_model: False
 
 # reloading
 checkpoint_path: "../training/wandb/run-20201123_142645-nrubygd3/files/model_state.pt"
