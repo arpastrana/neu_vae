@@ -105,22 +105,6 @@ class VanillaVAE(BaseVAE):
         """
         return self.decoder(z_data)
 
-    def generate(self, input_data):
-        """
-        Given some input data return its corresponding reconstruction.
-
-        Parameters
-        ----------
-        input_data : `torch.Tensor`
-            The input data.
-
-        Returns
-        -------
-        reconstructed_data : `torch.Tensor`
-            The reconstructed data
-        """
-        return self.forward(input_data)[0]  # is [0] necessary?
-
     def loss(self, input_data, recon_data, mean, logvar):
         """
         Calculate the training loss.

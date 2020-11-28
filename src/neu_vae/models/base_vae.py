@@ -21,12 +21,6 @@ class BaseVAE(Module):
     def decode(self, input_data):
         raise NotImplementedError
 
-    def sample(self, batch_size, current_device, **kwargs):
-        raise NotImplementedError
-
-    def generate(self, input_data):
-        raise NotImplementedError
-
     @abstractmethod
     def forward(self, input_data):
         pass
