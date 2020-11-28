@@ -33,6 +33,7 @@ class VanillaVAE(BaseVAE):
 
         assert encoder.z_dim == decoder.z_dim
 
+        self.name = "Vanilla VAE"
         self.z_dim = encoder.z_dim
         self.encoder = encoder
         self.decoder = decoder

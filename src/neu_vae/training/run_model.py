@@ -28,6 +28,7 @@ from torch import optim
 from neu_vae.models import LinearEncoder
 from neu_vae.models import LinearDecoder
 from neu_vae.models import VanillaVAE
+from neu_vae.models import BetaVAE
 
 from neu_vae.training import train
 from neu_vae.training import test
@@ -105,15 +106,25 @@ def run(config):
     reconstruction_loss = partial(getattr(functional, config["rec_loss"]),
                                   reduction="sum")
 
-    model = VanillaVAE(encoder,
-                       decoder,
-                       reconstruction_loss)
+    # selecte VAE model
+    beta = config["beta"]
+    if beta <= 1:
+        model = VanillaVAE(encoder,
+                           decoder,
+                           reconstruction_loss)
+    else:
+        model = BetaVAE(beta,
+                        encoder,
+                        decoder,
+                        reconstruction_loss)
 
     # send model to device and store it
     model = model.to(dev)
     config["model"] = model
 
     # print model summary
+    print("----------------------------------------------------------------")
+    print(f"Model name: {model.name}")
     summary(model, (1, config["input_dim"]))
 
     # wandb

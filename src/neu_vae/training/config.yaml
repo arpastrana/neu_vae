@@ -19,6 +19,9 @@ z_dim: 2  # 3
 encoder_hidden_dim: 500  # 400
 decoder_hidden_dim: 500
 
+# beta vae
+beta: 10.0
+
 # activation functions
 encoder_act_func: "tanh"
 decoder_act_func: "tanh"
@@ -26,7 +29,7 @@ decoder_pred_func: "sigmoid"
 
 # weights and biases logging
 project: "vae_kingma"
-wandb: True
+wandb: False
 group: "delete_me"
 test_num_img: 10
 save_model: False
