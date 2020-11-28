@@ -8,7 +8,7 @@ setup(
     description='An experiment with VAEs for NEU 560 at Princeton University',
     author='Rafael Pastrana',
     license='MIT',
-    packages=find_packages()
+    packages=find_packages(),
     # packages=["neu_vae"],
     package_dir={"": "src"}
 )
