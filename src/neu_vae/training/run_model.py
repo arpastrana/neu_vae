@@ -135,17 +135,26 @@ def run(config):
     print(f"Start datetime: {datetime.now()}")
     print("----------------------------------------------------------------")
 
-    for e in range(config["epochs"]):
+    # log control image
+    test_losses = test(config)
+    _, _, _, x, x_hat = test_losses
+    num_img = config["test_num_img"]
+    x_cat = cat((x[:num_img], x_hat[:num_img]), dim=0)
+    grid = image_grid(x_cat, nrow=num_img)
+
+    if config["wandb"]:
+        wandb.log({"Test Example": wandb.Image(grid, caption="Epoch: 0")})
+
+
+    for e in range(config["epochs"] + 1):
 
         train_losses = train(config)
-        test_losses = test(config)
+        train_losses = [loss / len(train_batcher.dataset) for loss in train_losses]
+        train_loss, train_recon_loss, train_kld_loss = train_losses
 
         # average
-        train_losses = [loss / len(train_batcher.dataset) for loss in train_losses]
+        test_losses = test(config)
         test_losses = [loss / len(test_batcher.dataset) for loss in test_losses]
-
-        # unpack
-        train_loss, train_recon_loss, train_kld_loss = train_losses
         test_loss, test_recon_loss, test_kld_loss, x, x_hat = test_losses
 
         # print stuff
@@ -155,7 +164,7 @@ def run(config):
         num_img = config["test_num_img"]
         x_cat = cat((x[:num_img], x_hat[:num_img]), dim=0)
         grid = image_grid(x_cat, nrow=num_img)
-        # show_image_grid(x_cat, nrow=5)  # BUG: only works insite test()?
+        # show_image_grid(x_cat, nrow=5)  # BUG: only works in test()?
 
         if not config["wandb"]:
             continue

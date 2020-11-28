@@ -89,8 +89,10 @@ target/
 .mypy_cache/
 i
 
-# Data folder
+# Package folders
 data/
+reports/
 
 # WandB folder
 src/neu_vae/training/wandb/
+

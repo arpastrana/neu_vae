@@ -12,7 +12,6 @@ def test(kwargs):
     model = kwargs["model"]
     test_batcher = kwargs["test_batcher"]
     device = kwargs["device"]
-    optimizer = kwargs["optimizer"]
 
     # set the model to evaluation mode
     model.eval()
@@ -46,4 +45,4 @@ def test(kwargs):
             test_recon_loss += recon_loss.item()
             test_kld_loss += kld_loss.item()
 
-    return test_loss, test_recon_loss, test_kld_loss
+    return test_loss, test_recon_loss, test_kld_loss, x, x_hat
