@@ -1,4 +1,5 @@
 from setuptools import setup
+from setuptools import find_packages
 
 
 setup(
@@ -7,6 +8,7 @@ setup(
     description='An experiment with VAEs for NEU 560 at Princeton University',
     author='Rafael Pastrana',
     license='MIT',
-    packages=["neu_vae"],
+    packages=find_packages()
+    # packages=["neu_vae"],
     package_dir={"": "src"}
 )
