@@ -148,12 +148,35 @@ class VanillaVAE(BaseVAE):
         r_loss = self.recon_loss_func(recon_data, input_data)
 
         # analytical KLD between two Gaussian distributions
-        kld_loss = - 0.5 * sum(1.0 + logvar - mean.pow(2) - logvar.exp())
+        kld_loss = self.kl_divergence_gaussian(mean, logvar)
 
         # sum of the two previous losses
         loss = r_loss + kld_loss
 
         return {"loss": loss, "recon_loss": r_loss, "kld_loss": kld_loss}
+
+    @staticmethod
+    def kl_divergence_gaussian(mean, logvar):
+        """
+        Analytically computes the negative KL Divergence of two Gaussians.
+
+        Parameters
+        ----------
+        mean : `torch.Tensor`
+            The mean of the Gaussian latent space.
+        logvar : `torch.Tensor`
+            The log-variance of the Gaussian latent space.
+
+        Returns
+        -------
+        kl_divergence : `float`
+            The value of the KL divergence.
+
+        Notes
+        -----
+        One of the two distributions is assumed to be a unit Gaussian N~(0, I).
+        """
+        return - 0.5 * sum(1.0 + logvar - mean.pow(2) - logvar.exp())
 
     @staticmethod
     def reparametrize(mean, logvar):

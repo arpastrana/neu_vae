@@ -33,7 +33,6 @@ from neu_vae.training import train
 from neu_vae.training import test
 
 from neu_vae.visualization import image_grid
-from neu_vae.visualization import show_image_grid
 
 
 def run(config):
