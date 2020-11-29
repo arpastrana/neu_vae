@@ -92,6 +92,7 @@ i
 # Package folders
 data/
 reports/
+models/
 
 # WandB folder
 src/neu_vae/training/wandb/
