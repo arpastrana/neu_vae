@@ -12,18 +12,18 @@ class LinearDecoder(Module):
 
     Parameters
     ----------
-    input_dim : `int`
-        The size of the flattened input.
-    hidden_dim : `int`
-        The number of hiden units in the single hidden layer.
     z_dim : `int`
         The dimensionality of the latent space.
+    hidden_dim : `int`
+        The number of hiden units in the single hidden layer.
+    output_dim : `int`
+        The size of the flattened output.
     act_func : `nn.Functional.function`
         The activation function of the single hidden layer.
     pred_func : ``torch.function`
         The activation function of the output layer.
     """
-    def __init__(self, z_dim, hidden_dim, output_dim, act_func, pred_func):
+    def __init__(self, z_dim, hidden_dim, output_dim, act_func, pred_func, **kwargs):
         """
         The constructor.
         """

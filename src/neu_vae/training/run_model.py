@@ -25,10 +25,9 @@ from torch import cat
 from torch.nn import functional
 from torch import optim
 
-from neu_vae.models import LinearEncoder
-from neu_vae.models import LinearDecoder
-from neu_vae.models import VanillaVAE
-from neu_vae.models import BetaVAE
+from neu_vae.models import EncoderFactory
+from neu_vae.models import DecoderFactory
+from neu_vae.models import VAEFactory
 
 from neu_vae.training import train
 from neu_vae.training import test
@@ -44,7 +43,8 @@ def run(config):
     if config["wandb"]:
         wandb.init(config=config,
                    project=config["project"],
-                   group=config["group"])
+                   group=config["group"],
+                   name=config["run_name"])
 
     # Set random seeds
     manual_seed(config["seed"])
@@ -55,68 +55,69 @@ def run(config):
     dev = device("cuda" if use_cuda else "cpu")
     config["device"] = dev
 
-    d_kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
-
     # load datasets
     transformations = transforms.Compose([transforms.ToTensor()])
 
     train_dataset = datasets.MNIST(config["data_path"],
                                    train=True,
                                    download=True,
-                                   transform=transformations,
-                                   **d_kwargs)
+                                   transform=transformations)
 
     test_dataset = datasets.MNIST(config["data_path"],
                                   train=False,
                                   download=True,
-                                  transform=transformations,
-                                  **d_kwargs)
+                                  transform=transformations)
 
     # define batchers
+    d_kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
+
     train_batcher = DataLoader(train_dataset,
                                batch_size=config["batch_size"],
-                               shuffle=True)
+                               shuffle=True,
+                               **d_kwargs)
 
     test_batcher = DataLoader(test_dataset,
                               batch_size=config["batch_size"],
-                              shuffle=False)
+                              shuffle=False,
+                              **d_kwargs)
 
     config["train_batcher"] = train_batcher
     config["test_batcher"] = test_batcher
 
     # create encoder
-    enc_act_func = getattr(torch, config["encoder_act_func"])
+    n_classes = config["n_classes"]
+    enc_kwargs = {"input_dim": config["input_dim"],
+                  "hidden_dim": config["encoder_hidden_dim"],
+                  "z_dim": config["z_dim"],
+                  "act_func": getattr(torch, config["encoder_act_func"]),
+                  "n_classes": n_classes}
 
-    encoder = LinearEncoder(config["input_dim"],
-                            config["encoder_hidden_dim"],
-                            config["z_dim"],
-                            act_func=enc_act_func)
+    encoder = EncoderFactory.create(config["encoder_name"])
+    encoder = encoder(**enc_kwargs)
 
     # create decoder
-    dec_act_func = getattr(torch, config["decoder_act_func"])
-    dec_pred_func = getattr(torch, config["decoder_pred_func"])
+    dec_kwargs = {"z_dim": config["z_dim"],
+                  "hidden_dim": config["decoder_hidden_dim"],
+                  "output_dim": config["input_dim"],
+                  "act_func": getattr(torch, config["decoder_act_func"]),
+                  "pred_func": getattr(torch, config["decoder_pred_func"]),
+                  "n_classes": n_classes}
 
-    decoder = LinearDecoder(config["z_dim"],
-                            config["decoder_hidden_dim"],
-                            config["input_dim"],
-                            act_func=dec_act_func,
-                            pred_func=dec_pred_func)
+    decoder = DecoderFactory.create(config["decoder_name"])
+    decoder = decoder(**dec_kwargs)
 
     # assemble VAE
     reconstruction_loss = partial(getattr(functional, config["rec_loss"]),
                                   reduction="sum")
 
+    vae_kwargs = {"encoder": encoder,
+                  "decoder": decoder,
+                  "recon_loss_func": reconstruction_loss,
+                  "beta": config["beta"]}
+
     # selecte VAE model
-    beta = config["beta"]
-    if beta <= 1:
-        model = VanillaVAE(encoder,
-                           decoder,
-                           reconstruction_loss)
-    else:
-        model = BetaVAE(beta,
-                        encoder,
-                        decoder,
-                        reconstruction_loss)
+    vae = VAEFactory.create(config["vae_name"])
+    model = vae(**vae_kwargs)
 
     # send model to device and store it
     model = model.to(dev)
@@ -124,15 +125,15 @@ def run(config):
 
     # print model summary
     print("----------------------------------------------------------------")
-    print(f"Model name: {model.name}")
-    summary(model, (1, config["input_dim"]))
+    print(f"Model: {model.name}")
+    # summary(model, (1, config["input_dim"] + config["n_classes"]))
 
     # wandb
     if config["wandb"]:
         wandb.watch(model, log="all")
 
     # create the optimizer
-    optimizer = getattr(optim, config["optimizer"])
+    optimizer = getattr(optim, config["optimizer_name"])
     optimizer = optimizer(model.parameters(), lr=config["lr"])
     config["optimizer"] = optimizer
 
@@ -191,7 +192,9 @@ def run(config):
     # save model with torch to wandb run dir (uploads after training is complete)
     # TODO: Save intermediary checkpoints instead
     if config["wandb"] and config["save_model"]:
-        save({"epoch": e,
+        save({"model_name": model.name,
+              "beta": config["beta"],
+              "epoch": e,
               "model_state_dict": model.state_dict(),
               "optimizer_state_dict": optimizer.state_dict(),
               "z_dim": config["z_dim"],

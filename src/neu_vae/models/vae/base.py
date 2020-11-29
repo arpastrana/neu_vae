@@ -2,7 +2,6 @@
 An abtract base VAE.
 """
 
-
 from abc import abstractmethod
 
 from torch.nn import Module
@@ -15,16 +14,16 @@ class BaseVAE(Module):
     def __init__(self):
         super(BaseVAE, self).__init__()
 
-    def encode(self, input_data):
+    def encode(self):
         raise NotImplementedError
 
-    def decode(self, input_data):
+    def decode(self):
         raise NotImplementedError
 
     @abstractmethod
-    def forward(self, input_data):
+    def forward(self):
         pass
 
     @abstractmethod
-    def loss(self, *inputs, **kwargs):
+    def loss(self):
         pass

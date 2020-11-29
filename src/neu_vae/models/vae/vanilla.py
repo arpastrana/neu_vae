@@ -6,12 +6,12 @@ from torch import exp
 from torch import randn_like
 from torch import sum
 
-from neu_vae.models import VanillaVAE
+from neu_vae.models.vae import BaseVAE
 
 
-class ConditionalVAE(VanillaVAE):
+class VanillaVAE(BaseVAE):
     """
-    A VAE (almost) as per Kingma and Welling (2014) with one-hot class labels.
+    A VAE (almost) as described by Kingma and Welling (2014).
 
     Parameters
     ----------
@@ -25,21 +25,21 @@ class ConditionalVAE(VanillaVAE):
         For a Gaussian decoder, the squared error is suggested.
         TODO: Is it the mean squared error or just the squared error?
     """
-    def __init__(self, encoder, decoder, recon_loss_func):
+    def __init__(self, encoder, decoder, recon_loss_func, **kwargs):
         """
         The constructor.
         """
-        super(ConditionalVAE, self).__init__()
+        super(VanillaVAE, self).__init__()
 
         assert encoder.z_dim == decoder.z_dim
 
-        self.name = "Conditional VAE"
+        self.name = "Vanilla VAE"
         self.z_dim = encoder.z_dim
         self.encoder = encoder
         self.decoder = decoder
         self.recon_loss_func = recon_loss_func
 
-    def forward(self, input_data, input_labels):
+    def forward(self, input_data, *args, **kwargs):
         """
         Do a forward step.
 
@@ -47,8 +47,6 @@ class ConditionalVAE(VanillaVAE):
         ----------
         input_data : `torch.Tensor`
             The input data.
-        input_labels : `torch.Tensor`
-            The one-hot labels of the input data.
 
         Returns
         -------
@@ -60,18 +58,20 @@ class ConditionalVAE(VanillaVAE):
             The log-variance of the Gaussian latent space.
 
         """
+        # input_data = args[0]
+
         # encode
-        z_mean, z_logvar = self.encode(input_data, input_labels)
+        z_mean, z_logvar = self.encode(input_data)
 
         # reparametrize
         z_data = self.reparametrize(z_mean, z_logvar)
 
         # decode
-        reconstruction = self.decode(z_data, input_labels)
+        reconstruction = self.decode(z_data)
 
         return reconstruction, z_mean, z_logvar
 
-    def encode(self, input_data, input_labels):
+    def encode(self, input_data):
         """
         Encodes the input as mean and log-variance tensors.
 
@@ -79,8 +79,6 @@ class ConditionalVAE(VanillaVAE):
         ----------
         input_data : `torch.Tensor`
             The input data.
-        input_labels : `torch.Tensor`
-            The one-hot labels of the input data.
 
         Returns
         -------
@@ -89,11 +87,11 @@ class ConditionalVAE(VanillaVAE):
         logvar : `torch.Tensor`
             The log-variance of the Gaussian latent space.
         """
-        mean, logvar = self.encoder(input_data, input_labels)
+        mean, logvar = self.encoder(input_data)
 
         return mean, logvar
 
-    def decode(self, z_data, input_labels):
+    def decode(self, z_data):
         """
         Decode a sample from the latent space back into data space.
 
@@ -101,15 +99,13 @@ class ConditionalVAE(VanillaVAE):
         ----------
         z_data : `torch.Tensor`
             The sampled data from the Gaussian latent space.
-        input_labels : `torch.Tensor`
-            The one-hot labels of the input data.
 
         Returns
         -------
         reconstructed_data : `torch.Tensor`
             The reconstructed data.
         """
-        return self.decoder(z_data, input_labels)
+        return self.decoder(z_data)
 
     def loss(self, input_data, recon_data, mean, logvar):
         """
@@ -145,3 +141,47 @@ class ConditionalVAE(VanillaVAE):
         loss = r_loss + kld_loss
 
         return {"loss": loss, "recon_loss": r_loss, "kld_loss": kld_loss}
+
+    @staticmethod
+    def kl_divergence_gaussian(mean, logvar):
+        """
+        Analytically computes the negative KL Divergence of two Gaussians.
+
+        Parameters
+        ----------
+        mean : `torch.Tensor`
+            The mean of the Gaussian latent space.
+        logvar : `torch.Tensor`
+            The log-variance of the Gaussian latent space.
+
+        Returns
+        -------
+        kl_divergence : `float`
+            The value of the KL divergence.
+
+        Notes
+        -----
+        One of the two distributions is assumed to be a unit Gaussian N~(0, I).
+        """
+        return - 0.5 * sum(1.0 + logvar - mean.pow(2) - logvar.exp())
+
+    @staticmethod
+    def reparametrize(mean, logvar):
+        """
+        Reparametrization trick to sample N(mean, var) from N(0, I).
+
+        Parameters
+        ----------
+        mean : `torch.Tensor`
+            The mean of the Gaussian latent space.
+        logvar : `torch.Tensor`
+            The log-variance of the Gaussian latent space.
+
+        Returns
+        -------
+        z_data : `torch.Tensor`
+            The sampled data from the Gaussian latent space.
+        """
+        std = exp(0.5 * logvar)
+        eps = randn_like(std)
+        return eps * std + mean

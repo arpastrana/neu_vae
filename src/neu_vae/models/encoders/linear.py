@@ -21,7 +21,7 @@ class LinearEncoder(Module):
     act_func : `nn.Functional.function`
         The activation function of the single hidden layer.
     """
-    def __init__(self, input_dim, hidden_dim, z_dim, act_func):
+    def __init__(self, input_dim, hidden_dim, z_dim, act_func, **kwargs):
         """
         The constructor.
         """

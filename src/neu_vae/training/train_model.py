@@ -22,14 +22,18 @@ def train(kwargs):
     train_recon_loss = 0.0
     train_kld_loss = 0.0
 
-    for x, _ in train_batcher:
+    for x, y in train_batcher:
 
         # reshape the data into [batch_size, 784]
         x = x.view(-1, kwargs["input_dim"])
         x = x.to(device)
 
+        # reshape y into [batch_size, 1]
+        y = y.view(-1, 1)
+        y = y.to(device)
+
         # forward pass
-        x_hat, z_mean, z_logvar = model(x)
+        x_hat, z_mean, z_logvar = model(x, y)
 
         # loss
         loss_dict = model.loss(x, x_hat, z_mean, z_logvar)

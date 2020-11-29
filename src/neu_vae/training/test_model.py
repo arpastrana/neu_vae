@@ -24,14 +24,18 @@ def test(kwargs):
     # disregard gradients
     with no_grad():
 
-        for x, _ in test_batcher:
+        for x, y in test_batcher:
 
             # reshape the data into [batch_size, 784]
             x = x.view(-1, kwargs["input_dim"])
             x = x.to(device)
 
+            # reshape y into [batch_size, 1]
+            y = y.view(-1, 1)
+            y = y.to(device)
+
             # forward pass
-            x_hat, z_mean, z_logvar = model(x)
+            x_hat, z_mean, z_logvar = model(x, y)
 
             # loss
             loss_dict = model.loss(x, x_hat, z_mean, z_logvar)

@@ -6,7 +6,7 @@ from torch import exp
 from torch import randn_like
 from torch import sum
 
-from neu_vae.models import VanillaVAE
+from neu_vae.models.vae import VanillaVAE
 
 
 class BetaVAE(VanillaVAE):
@@ -15,8 +15,6 @@ class BetaVAE(VanillaVAE):
 
     Parameters
     ----------
-    beta : `float`
-        The beta hyperparemeter that scales the KL divergence term in the loss.
     encoder : `models.Encoder`
         An initialized encoder.
     decoder : `models.Decoder`
@@ -25,8 +23,10 @@ class BetaVAE(VanillaVAE):
         The function to compute the reconstruction loss.
         For a Bernoulli decoder, the binary cross entropy is recommended.
         For a Gaussian decoder, the squared error is suggested.
+    beta : `float`
+        The beta hyperparemeter that scales the KL divergence term in the loss.
     """
-    def __init__(self, beta, encoder, decoder, recon_loss_func):
+    def __init__(self, encoder, decoder, recon_loss_func, beta, **kwargs):
         """
         The constructor.
         """

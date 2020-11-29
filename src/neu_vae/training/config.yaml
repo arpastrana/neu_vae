@@ -3,7 +3,7 @@ data_path: "../../../data/external"
 seed: 1
 
 # optimizer
-optimizer: "Adagrad"  # Adagrad
+optimizer_name: "Adagrad"  # Adagrad
 lr: 0.01
 
 # reconstruction loss
@@ -11,16 +11,24 @@ rec_loss: "binary_cross_entropy"
 
 # learning rate
 batch_size: 100  # 100
-epochs: 5  # 100
+epochs: 50  # 100
 
 # VAE architecture
+n_classes: 10
+
 input_dim: 784  # for the MNIST dataset
-z_dim: 2  # 3
+z_dim: 10  # 3
+
 encoder_hidden_dim: 500  # 400
 decoder_hidden_dim: 500
 
+# names
+encoder_name: "ConditionalLinearEncoder"
+decoder_name: "ConditionalLinearDecoder"
+vae_name: "ConditionalBetaVAE"
+
 # beta vae
-beta: 10.0
+beta: 1.0
 
 # activation functions
 encoder_act_func: "tanh"
@@ -28,11 +36,12 @@ decoder_act_func: "tanh"
 decoder_pred_func: "sigmoid"
 
 # weights and biases logging
-project: "vae_kingma"
-wandb: False
+project: "cond_beta_vae"
+wandb: True
 group: "delete_me"
+run_name: "dummy_50_epochs_2"
 test_num_img: 10
-save_model: False
+save_model: True
 
 # reloading
-checkpoint_path: "../training/wandb/run-20201123_142645-nrubygd3/files/model_state.pt"
+checkpoint_path: "../training/wandb/run-20201128_184838-fllzp7d6/files/model_state.pt"

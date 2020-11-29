@@ -13,7 +13,9 @@ from math import cos
 
 from torch import no_grad
 from torch import randn
+from torch import cat
 from torch import FloatTensor
+from torch import LongTensor
 
 from torchvision.utils import make_grid
 
@@ -170,6 +172,27 @@ def save_image_grid(images, path, nrow=2, padding=0, imgsize=(1, 28, 28), figsiz
     plt.savefig(path, bbox_inches='tight', pad_inches=0)
 
 
+def plot_conditional_image(model, label, device):
+    """
+    Plots a single image from a trained conditional VAE.
+    """
+    # create a random latent vector
+    z = randn(1, model.z_dim).to(device)
+
+    y = LongTensor([label]).view((-1, 1))
+    y = model.one_hot(y).to(device, dtype=z.dtype)
+    z = cat((z, y), dim=1)
+
+    reconstructed_img = model.decode(z)
+    img = reconstructed_img.view(28, 28).data
+
+    plt.figure()
+    plt.imshow(img, cmap='gray')
+    plt.title(label)
+
+    plt.show()
+
+
 if __name__ == "__main__":
 
     import yaml
@@ -185,6 +208,8 @@ if __name__ == "__main__":
 
     model = reload_model(config)
     # show_latent_grid(model, "cpu", bound=1.5, num_samples=20)
-    save_circular_walk(model, path, "cpu", (-1.5, -1.5), (1.5, 1.5), num_samples=10)
+    # save_circular_walk(model, path, "cpu", (-1.5, -1.5), (1.5, 1.5), num_samples=10)
+    for i in range(10):
+        plot_conditional_image(model, i, "cpu")
 
     print("Done!")
