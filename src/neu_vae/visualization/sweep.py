@@ -180,6 +180,10 @@ if __name__ == "__main__":
                                   download=True,
                                   transform=transformations)
 
+    idx = test_dataset.targets==config["single_label"]
+    test_dataset.targets = test_dataset.targets[idx]
+    test_dataset.data = test_dataset.data[idx]
+
     # define test batcher
     d_kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
     test_batcher = DataLoader(test_dataset,
@@ -199,7 +203,7 @@ if __name__ == "__main__":
         x = x.view(-1, 784).to("cpu")
         y = y.view(-1, 1).to("cpu")
 
-        use_y = False
+        use_y = True
 
         # NOTE: Maybe try only with a single digit? Like digit 1 or 4?
 

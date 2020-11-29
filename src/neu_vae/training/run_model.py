@@ -68,6 +68,19 @@ def run(config):
                                   download=True,
                                   transform=transformations)
 
+    # filter single label
+    if config["use_single_label"]:
+
+        idx = train_dataset.targets==config["single_label"]
+        train_dataset.targets = train_dataset.targets[idx]
+        train_dataset.data = train_dataset.data[idx]
+
+        # test dataset
+        idx = test_dataset.targets==config["single_label"]
+        test_dataset.targets = test_dataset.targets[idx]
+        test_dataset.data = test_dataset.data[idx]
+
+
     # define batchers
     d_kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
 

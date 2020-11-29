@@ -11,7 +11,7 @@ rec_loss: "binary_cross_entropy"
 
 # learning rate
 batch_size: 100  # 100
-epochs: 100  # 100
+epochs: 50  # 100
 
 # VAE architecture
 n_classes: 10
@@ -34,22 +34,26 @@ vae_name: "BetaVAE"
 # beta vae
 beta: 1.0
 
+# single training / testing label
+use_single_label: True
+single_label: 1
+
 # activation functions
 encoder_act_func: "tanh"
 decoder_act_func: "tanh"
 decoder_pred_func: "sigmoid"
 
 # weights and biases logging
-project: "cond_beta_vae"
-wandb: False
+project: "beta_vae"
+wandb: True
 group: "delete_me"
-run_name: "dummy_50_epochs_2"
+run_name: "label_1_50epochs_z10_beta1"
 test_num_img: 10
 save_model: True
 
 # reloading
-checkpoint_path: "../../../models/vanilla_vae/beta_1_z_10.pt"
+# checkpoint_path: "../../../models/vanilla_vae/beta_1_z_10.pt"
 # checkpoint_path: "../../../models/cond_beta_vae/cond_beta_2_z_10.pt"
-# checkpoint_path: "../../../models/beta_vae/beta_5_z_10.pt"
+# checkpoint_path: "../../../models/beta_vae/beta_2_z_10.pt"
 # for cond_beta...4 and 5 and kind of 10 looked kind of promising
 # for no cond beta...maybe 5?...10???
