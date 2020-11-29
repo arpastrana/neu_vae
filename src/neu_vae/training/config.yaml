@@ -1,6 +1,6 @@
 # datasets
 data_path: "../../../data/external"
-seed: 1
+seed: 1  # 1
 
 # optimizer
 optimizer_name: "Adagrad"  # Adagrad
@@ -11,7 +11,7 @@ rec_loss: "binary_cross_entropy"
 
 # learning rate
 batch_size: 100  # 100
-epochs: 50  # 100
+epochs: 100  # 100
 
 # VAE architecture
 n_classes: 10
@@ -23,9 +23,13 @@ encoder_hidden_dim: 500  # 400
 decoder_hidden_dim: 500
 
 # names
-encoder_name: "ConditionalLinearEncoder"
-decoder_name: "ConditionalLinearDecoder"
-vae_name: "ConditionalBetaVAE"
+# encoder_name: "ConditionalLinearEncoder"
+# decoder_name: "ConditionalLinearDecoder"
+# vae_name: "ConditionalBetaVAE"
+
+encoder_name: "LinearEncoder"
+decoder_name: "LinearDecoder"
+vae_name: "BetaVAE"
 
 # beta vae
 beta: 1.0
@@ -44,4 +48,8 @@ test_num_img: 10
 save_model: True
 
 # reloading
-checkpoint_path: "../training/wandb/run-20201128_184838-fllzp7d6/files/model_state.pt"
+checkpoint_path: "../../../models/vanilla_vae/beta_1_z_10.pt"
+# checkpoint_path: "../../../models/cond_beta_vae/cond_beta_2_z_10.pt"
+# checkpoint_path: "../../../models/beta_vae/beta_5_z_10.pt"
+# for cond_beta...4 and 5 and kind of 10 looked kind of promising
+# for no cond beta...maybe 5?...10???

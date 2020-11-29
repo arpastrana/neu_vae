@@ -69,7 +69,7 @@ def reload_model(config):
     model = vae(**vae_kwargs)
 
     # load checkpoint
-    checkpoint = load(config["checkpoint_path"])
+    checkpoint = load(config["checkpoint_path"], map_location=dev)
 
     # load state dict
     model.load_state_dict(checkpoint["model_state_dict"])
