@@ -103,7 +103,7 @@ class ConditionalBetaVAE(BetaVAE):
         assert labels.shape[1] == 1
         assert max(labels).item() < self.n_classes
 
-        one_hot = zeros(labels.size(0), self.n_classes)
+        one_hot = zeros(labels.size(0), self.n_classes, device=labels.device)
         one_hot.scatter_(1, labels.data, 1)
 
         return one_hot

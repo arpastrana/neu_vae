@@ -37,7 +37,7 @@ decoder_pred_func: "sigmoid"
 
 # weights and biases logging
 project: "cond_beta_vae"
-wandb: True
+wandb: False
 group: "delete_me"
 run_name: "dummy_50_epochs_2"
 test_num_img: 10
