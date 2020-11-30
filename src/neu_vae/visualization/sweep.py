@@ -81,9 +81,13 @@ def latent_traversal(model, x_data, y_data, use_y=False, n_images=1, bound=4):
 
             # create a grid of modified z samples
             z_stream = []
-            for new_val in traversal:
+
+            for idx, new_val in enumerate(traversal):
 
                 for j in range(z_dims):
+
+                    # if j not in [5, 8, 9]:
+                    #     continue
 
                     z = z_sample.clone().detach().view(1, -1)
                     z[:, j] = new_val
@@ -93,11 +97,19 @@ def latent_traversal(model, x_data, y_data, use_y=False, n_images=1, bound=4):
 
                     z_stream.append(z)
 
+
             z_cat = cat(z_stream, dim=0)
+
+            print("z cat shape", z_cat.shape)
+            # print("z stack shape", z_cat.shape)
 
             x_hat = model.decode(z_cat)
 
+
+            print(x_hat.size())
+
             show_image_grid(x_hat, nrow=z_dims, padding=4)
+            # show_image_grid(x_hat, nrow=3, padding=4)
 
 
 def latent_traversal_manual(model, x_data, y_data, use_y=False, n_images=1, bound=4):
@@ -196,7 +208,8 @@ if __name__ == "__main__":
     model.eval()
 
     # define some stuff
-    num_images = 20
+    num_images = 1
+    bound=5
     for i in range(num_images):
 
         x, y = next(iter(test_batcher))
@@ -207,7 +220,7 @@ if __name__ == "__main__":
 
         # NOTE: Maybe try only with a single digit? Like digit 1 or 4?
 
-        latent_traversal(model, x, y, use_y, n_images=1, bound=4)
-        # latent_traversal_manual(model, x, y, use_y, n_images=1, bound=10)
+        latent_traversal(model, x, y, use_y, n_images=1, bound=bound)
+        # latent_traversal_manual(model, x, y, use_y, n_images=1, bound=bound)
 
     print("Done!")
