@@ -14,6 +14,7 @@ from torch import exp
 
 from neu_vae.visualization import image_grid
 from neu_vae.visualization import show_image_grid
+from neu_vae.visualization import save_image_grid
 
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
@@ -108,8 +109,10 @@ def latent_traversal(model, x_data, y_data, use_y=False, n_images=1, bound=4):
 
             print(x_hat.size())
 
-            show_image_grid(x_hat, nrow=z_dims, padding=4)
-            # show_image_grid(x_hat, nrow=3, padding=4)
+            # show_image_grid(x_hat, nrow=z_dims, padding=4)
+
+            path = "/Users/arpj/Desktop/a.png"
+            save_image_grid(x_hat, path, nrow=z_dims, padding=4)
 
 
 def latent_traversal_manual(model, x_data, y_data, use_y=False, n_images=1, bound=4):
@@ -156,6 +159,7 @@ def latent_traversal_manual(model, x_data, y_data, use_y=False, n_images=1, boun
             x_hat = model.decode(z_cat)
 
             show_image_grid(x_hat, nrow=z_dims, padding=4)
+
 
 if __name__ == "__main__":
 
@@ -216,7 +220,7 @@ if __name__ == "__main__":
         x = x.view(-1, 784).to("cpu")
         y = y.view(-1, 1).to("cpu")
 
-        use_y = True
+        use_y = False
 
         # NOTE: Maybe try only with a single digit? Like digit 1 or 4?
 

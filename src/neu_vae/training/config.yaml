@@ -23,20 +23,20 @@ encoder_hidden_dim: 500  # 400
 decoder_hidden_dim: 500
 
 # names
-encoder_name: "ConditionalLinearEncoder"
-decoder_name: "ConditionalLinearDecoder"
-vae_name: "ConditionalBetaVAE"
+# encoder_name: "ConditionalLinearEncoder"
+# decoder_name: "ConditionalLinearDecoder"
+# vae_name: "ConditionalBetaVAE"
 
-# encoder_name: "LinearEncoder"
-# decoder_name: "LinearDecoder"
-# vae_name: "BetaVAE"
+encoder_name: "LinearEncoder"
+decoder_name: "LinearDecoder"
+vae_name: "BetaVAE"
 
 # beta vae
-beta: 1.0
+beta: 10.0
 
 # single training / testing label
 use_single_label: True
-single_label: 8
+single_label: 6
 
 # activation functions
 encoder_act_func: "tanh"
@@ -53,9 +53,8 @@ save_model: True
 
 # reloading
 # checkpoint_path: "../../../models/vanilla_vae/beta_1_z_10.pt"
-checkpoint_path: "../../../models/cond_beta_vae/cond_beta_10_z_10.pt"
-# checkpoint_path: "../../../models/beta_vae/beta_2_z_10.pt"
+checkpoint_path: "../../../models/beta_vae/beta_20_z_10.pt"
+# checkpoint_path: "../../../models/cond_beta_vae/cond_beta_20_z_10.pt"
+
 # for cond_beta...4 and 5 and kind of 10 looked kind of promising
 # for no cond beta...maybe 5?...10???
-# ones_beta_1_z_10
-# checkpoint_path: "../../../models/fours_beta_vae/fours_beta_200_z_10.pt"
