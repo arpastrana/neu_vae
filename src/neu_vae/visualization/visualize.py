@@ -208,8 +208,8 @@ if __name__ == "__main__":
 
     model = reload_model(config)
     # show_latent_grid(model, "cpu", bound=1.5, num_samples=20)
-    # save_circular_walk(model, path, "cpu", (-1.5, -1.5), (1.5, 1.5), num_samples=10)
-    for i in range(10):
-        plot_conditional_image(model, i, "cpu")
+    save_circular_walk(model, path, "cpu", (-1.5, -1.5), (1.5, 1.5), num_samples=10)
+    # for i in range(10):
+        # plot_conditional_image(model, i, "cpu")
 
     print("Done!")

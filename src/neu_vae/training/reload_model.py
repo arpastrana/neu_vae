@@ -82,7 +82,7 @@ def reload_model(config):
 
     # print out
     print("----------------------------------------------------------------")
-    print(f"Model Loaded")
+    print("Model Loaded")
     print("----------------------------------------------------------------")
 
     return model

@@ -7,6 +7,7 @@ from torch import no_grad
 from torch import randn
 from torch import cat
 from torch import arange
+from torch import linspace
 from torch import tensor
 from torch import FloatTensor
 from torch import LongTensor
@@ -55,66 +56,6 @@ def plot_images(out, n_cols=10, count=False, figsize=(8, 8)):
     plt.show()
 
 
-def latent_traversal(model, x_data, y_data, use_y=False, n_images=1, bound=4):
-    """
-    Walk across every dimension of the latent space of a trained model.
-    """
-    model.eval()
-
-    with no_grad():
-
-        x_hat, mean, logvar = model(x, y)
-
-        std_dev = exp(0.5 * logvar)
-        std_dev_max = torch.max(std_dev)
-        z_data = model.reparametrize(mean, logvar)
-        z_dims = model.z_dim
-
-        traversal = arange(-bound, bound + 1, step=1)
-
-        for i in range(n_images):
-
-            z_sample = z_data[i, :]
-
-            if use_y:
-                y_sample = y_data[i, :].view(-1, 1)
-                y_sample = model.one_hot(y_sample)
-
-            # create a grid of modified z samples
-            z_stream = []
-
-            for idx, new_val in enumerate(traversal):
-
-                for j in range(z_dims):
-
-                    # if j not in [5, 8, 9]:
-                    #     continue
-
-                    z = z_sample.clone().detach().view(1, -1)
-                    z[:, j] = new_val
-
-                    if use_y:
-                        z = cat((z, y_sample), dim=1)
-
-                    z_stream.append(z)
-
-
-            z_cat = cat(z_stream, dim=0)
-
-            print("z cat shape", z_cat.shape)
-            # print("z stack shape", z_cat.shape)
-
-            x_hat = model.decode(z_cat)
-
-
-            print(x_hat.size())
-
-            # show_image_grid(x_hat, nrow=z_dims, padding=4)
-
-            path = "/Users/arpj/Desktop/a.png"
-            save_image_grid(x_hat, path, nrow=z_dims, padding=4)
-
-
 def latent_traversal_manual(model, x_data, y_data, use_y=False, n_images=1, bound=4):
     """
     Walk across every dimension of the latent space of a trained model.
@@ -159,6 +100,164 @@ def latent_traversal_manual(model, x_data, y_data, use_y=False, n_images=1, boun
             x_hat = model.decode(z_cat)
 
             show_image_grid(x_hat, nrow=z_dims, padding=4)
+
+
+def latent_traversal(model, x_data, y_data, use_y=False, n_images=1, bound=4):
+    """
+    Walk across every dimension of the latent space of a trained model.
+    """
+    model.eval()
+
+    with no_grad():
+
+        x_hat, mean, logvar = model(x, y)
+
+        # std_dev = exp(0.5 * logvar)
+        z_data = model.reparametrize(mean, logvar)
+        z_dims = model.z_dim
+
+        traversal = arange(-bound, bound + 1, step=1)
+
+        for i in range(n_images):
+
+            z_sample = z_data[i, :]
+
+            if use_y:
+                y_sample = y_data[i, :].view(-1, 1)
+                y_sample = model.one_hot(y_sample)
+
+            # create a grid of modified z samples
+            z_stream = []
+
+            for idx, new_val in enumerate(traversal):
+
+                for j in range(z_dims):
+
+                    # if j not in [5, 8, 9]:
+                    #     continue
+
+                    z = z_sample.clone().detach().view(1, -1)
+                    z[:, j] = new_val
+
+                    if use_y:
+                        z = cat((z, y_sample), dim=1)
+
+                    z_stream.append(z)
+
+
+            z_cat = cat(z_stream, dim=0)
+            # print("z cat shape", z_cat.shape)
+            # print("z stack shape", z_cat.shape)
+
+            x_hat = model.decode(z_cat)
+            # print(f"Size x_hat:{x_hat.size()}")
+
+            show_image_grid(x_hat, nrow=z_dims, padding=4)
+
+            # path = "/Users/arpj/Desktop/a.png"
+            # save_image_grid(x_hat, path, nrow=z_dims, padding=4)
+
+
+def latent_conditional_traversal_single(model, x_data, y_data, fpath, z_dims, start, end, steps=10, n_images=1):
+    """
+    Walk across every dimension of the latent space of a trained model.
+    """
+    model.eval()
+
+    with no_grad():
+
+        x_hat, mean, logvar = model(x, y)
+
+        # sample from posterior
+        z_data = model.reparametrize(mean, logvar)
+
+        traversal = linspace(start, end, steps=steps+1)
+
+        for i in range(n_images):
+
+            if i != 2:
+                continue
+
+            z_sample = z_data[i, :]
+
+            y_sample = y_data[i, :].view(-1, 1)
+            y_sample = model.one_hot(y_sample)
+
+
+            counter = 0
+            for j in z_dims:
+
+                for new_mean in traversal:
+
+                    z = z_sample.clone().detach().view(1, -1)
+                    z[:, j] = new_mean
+
+                    z = cat((z, y_sample), dim=1)
+
+                    x_hat = model.decode(z)
+
+                    # show_image_grid(x_hat, nrow=len(traversal), padding=4)
+                    # show_image_grid(x_hat, nrow=1)
+
+                    # path = "/Users/arpj/Desktop/a.png"
+                    path = f"{fpath}/{counter}.png"
+
+                    save_image_grid(x_hat, path, nrow=1)
+
+                    counter += 1
+
+
+def latent_conditional_traversal_grid(model, x_data, y_data, use_y=True, z_dims=None, bound=5, steps=10, n_images=1):
+    """
+    Walk across every dimension of the latent space of a trained model.
+    """
+    model.eval()
+
+    with no_grad():
+
+        x_hat, mean, logvar = model(x, y)
+
+        # sample from posterior
+        z_data = model.reparametrize(mean, logvar)
+
+        traversal = linspace(-bound, bound, steps=steps+1)
+
+        if not z_dims:
+            z_dims = list(range(model.z_dim))
+
+        for i in range(n_images):
+
+            z_sample = z_data[i, :]
+
+            if use_y:
+
+                y_sample = y_data[i, :].view(-1, 1)
+                y_sample = model.one_hot(y_sample)
+
+            # create a grid of modified z samples
+            z_stream = []
+
+            for j in z_dims:
+
+                for new_mean in traversal:
+
+                    z = z_sample.clone().detach().view(1, -1)
+                    z[:, j] = new_mean
+
+                    if use_y:
+
+                        z = cat((z, y_sample), dim=1)
+
+                    z_stream.append(z)
+
+            z_cat = cat(z_stream, dim=0)
+
+            x_hat = model.decode(z_cat)
+
+            # show_image_grid(x_hat, nrow=len(traversal), padding=4)
+
+            path = f"/Users/arpj/Desktop/vaegrids/vaegrid_{i}.png"
+            save_image_grid(x_hat, path, nrow=len(traversal), padding=4)
 
 
 if __name__ == "__main__":
@@ -212,19 +311,34 @@ if __name__ == "__main__":
     model.eval()
 
     # define some stuff
-    num_images = 1
-    bound=5
-    for i in range(num_images):
+    NUM_IMAGES = 1
+    BOUND = 5
+    STEPS = 20
+    USE_Y = False
+
+    filepath = f"/Users/arpj/Desktop/vae_zdim_5"
+
+
+    for i in range(NUM_IMAGES):
 
         x, y = next(iter(test_batcher))
         x = x.view(-1, 784).to("cpu")
         y = y.view(-1, 1).to("cpu")
 
-        use_y = False
-
         # NOTE: Maybe try only with a single digit? Like digit 1 or 4?
+        # latent_conditional_traversal_single(model,
+        #                                     x,
+        #                                     y,
+        #                                     filepath,
+        #                                     z_dims=[5],  # [5, 8, 9]
+        #                                     start=-1,
+        #                                     end=-7,
+        #                                     steps=100,
+        #                                     n_images=3)
 
-        latent_traversal(model, x, y, use_y, n_images=1, bound=bound)
-        # latent_traversal_manual(model, x, y, use_y, n_images=1, bound=bound)
+        latent_conditional_traversal_grid(model, x, y, use_y=USE_Y, bound=BOUND, steps=10, n_images=10)
+
+        # latent_traversal(model, x, y, use_y=USE_Y, n_images=1, bound=BOUND)
+        # latent_traversal_manual(model, x, y, USE_Y, n_images=1, bound=BOUND)
 
     print("Done!")
