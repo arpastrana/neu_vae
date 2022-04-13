@@ -1,3 +1,11 @@
+# weights and biases logging
+project: "beta_vae"
+wandb: True
+group: "delete_me"
+run_name: "label_1_50epochs_z10_beta1"
+test_num_img: 10
+save_model: True
+
 # datasets
 data_path: "../../../data/external"
 seed: 1  # 1
@@ -9,13 +17,17 @@ lr: 0.01
 # reconstruction loss
 rec_loss: "binary_cross_entropy"
 
+# activation functions
+encoder_act_func: "tanh"
+decoder_act_func: "tanh"
+decoder_pred_func: "sigmoid"
+
 # learning rate
 batch_size: 100  # 100
 epochs: 50  # 100
 
 # VAE architecture
 n_classes: 10
-
 input_dim: 784  # for the MNIST dataset
 z_dim: 10  # 3
 
@@ -36,25 +48,14 @@ beta: 10.0
 
 # single training / testing label
 use_single_label: True
-single_label: 6
-
-# activation functions
-encoder_act_func: "tanh"
-decoder_act_func: "tanh"
-decoder_pred_func: "sigmoid"
-
-# weights and biases logging
-project: "beta_vae"
-wandb: True
-group: "delete_me"
-run_name: "label_1_50epochs_z10_beta1"
-test_num_img: 10
-save_model: True
+single_label: 8
 
 # reloading
-# checkpoint_path: "../../../models/vanilla_vae/beta_1_z_10.pt"
-checkpoint_path: "../../../models/beta_vae/beta_20_z_10.pt"
-# checkpoint_path: "../../../models/cond_beta_vae/cond_beta_20_z_10.pt"
+# checkpoint_path: "../../../models/vanilla_vae/beta_1_z_2.pt"
+checkpoint_path: "../../../models/vanilla_vae/beta_1_z_10.pt"
+# checkpoint_path: "../../../models/beta_vae/beta_20_z_10.pt"
+# checkpoint_path: "../../../models/cond_beta_vae/cond_beta_10_z_10.pt"
+# checkpoint_path: "../../../models/beta_vae/beta_10_z_10.pt"
 
 # for cond_beta...4 and 5 and kind of 10 looked kind of promising
 # for no cond beta...maybe 5?...10???
