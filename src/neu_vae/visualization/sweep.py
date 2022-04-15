@@ -183,7 +183,6 @@ def latent_conditional_traversal_single(model, x_data, y_data, fpath, z_dims, st
             y_sample = y_data[i, :].view(-1, 1)
             y_sample = model.one_hot(y_sample)
 
-
             counter = 0
             for j in z_dims:
 
@@ -196,10 +195,6 @@ def latent_conditional_traversal_single(model, x_data, y_data, fpath, z_dims, st
 
                     x_hat = model.decode(z)
 
-                    # show_image_grid(x_hat, nrow=len(traversal), padding=4)
-                    # show_image_grid(x_hat, nrow=1)
-
-                    # path = "/Users/arpj/Desktop/a.png"
                     path = f"{fpath}/{counter}.png"
 
                     save_image_grid(x_hat, path, nrow=1)
@@ -307,19 +302,19 @@ if __name__ == "__main__":
                               **d_kwargs)
 
     # models to test
-    vaes = {# "standard": {"vae_name": "BetaVAE",
-            #              "beta": 1,
-            #              "use_y": False,
-            #              "checkpoint_path": "../../../models/vanilla_vae/beta_1_z_10.pt",
-            #              "encoder_name": "LinearEncoder",
-            #              "decoder_name": "LinearDecoder"},
+    vaes = {"standard": {"vae_name": "BetaVAE",
+                         "beta": 1,
+                         "use_y": False,
+                         "checkpoint_path": "../../../models/vanilla_vae/beta_1_z_10.pt",
+                         "encoder_name": "LinearEncoder",
+                         "decoder_name": "LinearDecoder"},
 
-            # "beta": {"vae_name": "BetaVAE",
-            #          "beta": 10,
-            #          "use_y": False,
-            #          "checkpoint_path": "../../../models/beta_vae/beta_10_z_10.pt",
-            #          "encoder_name": "LinearEncoder",
-            #          "decoder_name": "LinearDecoder"},
+            "beta": {"vae_name": "BetaVAE",
+                     "beta": 10,
+                     "use_y": False,
+                     "checkpoint_path": "../../../models/beta_vae/beta_10_z_10.pt",
+                     "encoder_name": "LinearEncoder",
+                     "decoder_name": "LinearDecoder"},
 
             "cond_beta": {"vae_name": "ConditionalBetaVAE",
                           "beta": 10,
