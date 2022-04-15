@@ -48,7 +48,7 @@ beta: 10.0
 
 # single training / testing label
 use_single_label: True
-single_label: 8
+single_label: 9
 
 # reloading
 # checkpoint_path: "../../../models/vanilla_vae/beta_1_z_2.pt"

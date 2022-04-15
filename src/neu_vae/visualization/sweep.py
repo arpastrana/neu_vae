@@ -207,7 +207,7 @@ def latent_conditional_traversal_single(model, x_data, y_data, fpath, z_dims, st
                     counter += 1
 
 
-def latent_conditional_traversal_grid(model, x_data, y_data, use_y=True, z_dims=None, bound=5, steps=10, n_images=1):
+def latent_conditional_traversal_grid(model, x_data, y_data, use_y=True, z_dims=None, bound=5, steps=10, filepath=None):
     """
     Walk across every dimension of the latent space of a trained model.
     """
@@ -218,46 +218,41 @@ def latent_conditional_traversal_grid(model, x_data, y_data, use_y=True, z_dims=
         x_hat, mean, logvar = model(x, y)
 
         # sample from posterior
-        z_data = model.reparametrize(mean, logvar)
+        z_sample = model.reparametrize(mean, logvar)
 
         traversal = linspace(-bound, bound, steps=steps+1)
 
         if not z_dims:
             z_dims = list(range(model.z_dim))
 
-        for i in range(n_images):
+        if use_y:
 
-            z_sample = z_data[i, :]
+            y_sample = y_data.view(-1, 1)
+            y_sample = model.one_hot(y_sample)
 
-            if use_y:
+        # create a grid of modified z samples
+        z_stream = []
 
-                y_sample = y_data[i, :].view(-1, 1)
-                y_sample = model.one_hot(y_sample)
+        for j in z_dims:
 
-            # create a grid of modified z samples
-            z_stream = []
+            for new_mean in traversal:
 
-            for j in z_dims:
+                z = z_sample.clone().detach().view(1, -1)
+                z[:, j] = new_mean
 
-                for new_mean in traversal:
+                if use_y:
 
-                    z = z_sample.clone().detach().view(1, -1)
-                    z[:, j] = new_mean
+                    z = cat((z, y_sample), dim=1)
 
-                    if use_y:
+                z_stream.append(z)
 
-                        z = cat((z, y_sample), dim=1)
+        z_cat = cat(z_stream, dim=0)
 
-                    z_stream.append(z)
+        x_hat = model.decode(z_cat)
 
-            z_cat = cat(z_stream, dim=0)
-
-            x_hat = model.decode(z_cat)
-
-            # show_image_grid(x_hat, nrow=len(traversal), padding=4)
-
-            path = f"/Users/arpj/Desktop/vaegrids/vaegrid_{i}.png"
-            save_image_grid(x_hat, path, nrow=len(traversal), padding=4)
+        # show_image_grid(x_hat, nrow=len(traversal), padding=4)
+        if filepath:
+            save_image_grid(x_hat, filepath, nrow=len(traversal), padding=4)
 
 
 if __name__ == "__main__":
@@ -273,6 +268,11 @@ if __name__ == "__main__":
     from torch import manual_seed
 
     from neu_vae.training import reload_model
+
+    from visualize import show_image_grid
+
+
+    BATCH_SIZE = 1  # 100
 
 
     with open("../training/config.yaml") as f:
@@ -302,43 +302,73 @@ if __name__ == "__main__":
     # define test batcher
     d_kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
     test_batcher = DataLoader(test_dataset,
-                              batch_size=config["batch_size"],
+                              batch_size=1,  # config["batch_size"],
                               shuffle=True,
                               **d_kwargs)
 
-    # reload model
-    model = reload_model(config)
-    model.eval()
+    # models to test
+    vaes = {# "standard": {"vae_name": "BetaVAE",
+            #              "beta": 1,
+            #              "use_y": False,
+            #              "checkpoint_path": "../../../models/vanilla_vae/beta_1_z_10.pt",
+            #              "encoder_name": "LinearEncoder",
+            #              "decoder_name": "LinearDecoder"},
+
+            # "beta": {"vae_name": "BetaVAE",
+            #          "beta": 10,
+            #          "use_y": False,
+            #          "checkpoint_path": "../../../models/beta_vae/beta_10_z_10.pt",
+            #          "encoder_name": "LinearEncoder",
+            #          "decoder_name": "LinearDecoder"},
+
+            "cond_beta": {"vae_name": "ConditionalBetaVAE",
+                          "beta": 10,
+                          "use_y": True,
+                          "checkpoint_path": "../../../models/cond_beta_vae/cond_beta_10_z_10.pt",
+                          "encoder_name": "ConditionalLinearEncoder",
+                          "decoder_name": "ConditionalLinearDecoder"}
+            }
 
     # define some stuff
-    NUM_IMAGES = 1
-    BOUND = 5
-    STEPS = 20
-    USE_Y = False
+    directory = f"/Users/arpj/Desktop/nvae_traversals"
+    n_images = 5
+    digit = config["single_label"]
 
-    filepath = f"/Users/arpj/Desktop/vae_zdim_5"
+    test_batcher = iter(test_batcher)
 
+    # Sample one batch of size 1!
+    for i in range(n_images):
+        print(f"=====Sampling image {i+1}/{n_images}=====")
 
-    for i in range(NUM_IMAGES):
-
-        x, y = next(iter(test_batcher))
+        x, y = next(test_batcher)
         x = x.view(-1, 784).to("cpu")
         y = y.view(-1, 1).to("cpu")
 
-        # NOTE: Maybe try only with a single digit? Like digit 1 or 4?
-        # latent_conditional_traversal_single(model,
-        #                                     x,
-        #                                     y,
-        #                                     filepath,
-        #                                     z_dims=[5],  # [5, 8, 9]
-        #                                     start=-1,
-        #                                     end=-7,
-        #                                     steps=100,
-        #                                     n_images=3)
+        for vae_name, params in vaes.items():
 
-        latent_conditional_traversal_grid(model, x, y, use_y=USE_Y, bound=BOUND, steps=10, n_images=10)
+            print(f"=====Processing VAE: {vae_name}=====")
 
-        # latent_traversal(model, x, y, use_y=USE_Y, n_images=1, bound=BOUND)
-        # latent_traversal_manual(model, x, y, USE_Y, n_images=1, bound=BOUND)
+            # update config for YAML file
+            config.update(params)
+
+            # reload model in evaluation mode
+            model = reload_model(config)
+            model.eval()
+
+            # append class labels or not
+            use_y = params["use_y"]
+
+            # show_image_grid(x, nrow=1)
+
+            # create filepath to save image
+            fpath = f"{directory}/{vae_name}_{digit}_{i}.png"
+
+            latent_conditional_traversal_grid(model,
+                                              x,
+                                              y,
+                                              use_y=use_y,
+                                              bound=5,
+                                              steps=10,
+                                              filepath=fpath)
 
     print("Done!")
